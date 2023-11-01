@@ -75,6 +75,7 @@ go run *.go
 * API endpoint: http://localhost:8080/explicit/users/$uuid
 * Enable Read Commit in CockroachDB
  * `root@192.168.86.74:26257/defaultdb ?> SET CLUSTER SETTING sql.txn.read_committed_syntax.enabled = 'true'; `
+ * At the session level set: `set default_transaction_isolation = 'read committed';`
 * Run the stress test
   * `k6 run --vus 500 --duration 5m k6-explicit.js`
 
