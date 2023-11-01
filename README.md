@@ -73,6 +73,8 @@ go run *.go
 * Slightly modify your K6 script to hard code some user UUIDs in an array
   * `const uuids = [...uuids...]`
 * API endpoint: http://localhost:8080/explicit/users/$uuid
+* Enable Read Commit in CockroachDB
+ * `root@192.168.86.74:26257/defaultdb ?> SET CLUSTER SETTING sql.txn.read_committed_syntax.enabled = 'true'; `
 * Run the stress test
   * `k6 run --vus 500 --duration 5m k6-explicit.js`
 
