@@ -64,7 +64,7 @@ go run *.go
 
 * Slightly modify your K6 script to hard code some user UUIDs in an array
   * `const uuids = [...uuids...]`
-* API endpoint: http://localhost:8080/implicit/users/`:uuid`
+* API endpoint: http://localhost:8080/implicit/users/$uuid
 * Run the stress test
   * `k6 run --vus 500 --duration 5m k6-implicit.js`
   
@@ -72,7 +72,7 @@ go run *.go
 
 * Slightly modify your K6 script to hard code some user UUIDs in an array
   * `const uuids = [...uuids...]`
-* API endpoint: http://localhost:8080/explicit/users/`:uuid`
+* API endpoint: http://localhost:8080/explicit/users/$uuid
 * Run the stress test
   * `k6 run --vus 500 --duration 5m k6-explicit.js`
 
