@@ -13,7 +13,7 @@ Tickets API Simulation
 * GET: `/user/:uuid/purchases` - get user purchases
 * GET: `/user/:uuid/purchases/cancellations` - get user cancellations
 * GET: `/search/users` - search users `http://localhost:3001/search/users?name=Abigail` for go-pg
-* GET: `/search/users` - search users `http://localhost:3001/search/users?name=Abigail` for pgx
+* GET: `/search/users` - search users `http://localhost:3002/search/users?name=Abigail` for pgx
 
 ## Start GO-PG Tickets API Endpoint
 
@@ -59,6 +59,8 @@ go mod init implicit-explicit
 go mod tidy
 go run *.go
 ```
+
+**NOTE:** for K6 Stress test, the ramp up in this examples have been set to 1m.
 
 ### Test Implicit Transactions
 
