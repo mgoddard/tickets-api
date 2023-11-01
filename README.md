@@ -42,15 +42,17 @@ go run *.go
 ```
 ### Run K6 Stress Test
 
-```
+```shell
 k6 run k6-pgx.js
 ```
 
 ## Implicit/Explicit Transaction Example
 
+* This example focuses on querying the `users` table
+* This example requires Jaeger (can be deployed in a docker container) to trace the API execution and it's SQL statement basic metrics
 * This example is built to test Read Committed transactions in CockroachDB 23.2.x (beta at the moment of this writing)
 
-```
+```shell
 cd read-commit
 
 go mod init implicit-explicit
