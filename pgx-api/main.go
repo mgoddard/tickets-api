@@ -45,7 +45,12 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
-
+	// Connection Pool manage in Go
+	/*
+	- if random number generator is 5%
+ 	- then drop existing connection manager
+  	- and create a new connection
+ 	*/
 	r := gin.Default()
 
 	config := cors.DefaultConfig()
