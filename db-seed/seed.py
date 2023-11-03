@@ -40,44 +40,60 @@ class Payment(Base):
     status = Column(String)
 
 
-def create_fake_data(session, num_users, num_purchases, num_cancellations, num_payments):
+def create_fake_data(session, num_users, num_purchases, num_cancellations, num_payments, batch_size=100):
     user_ids = []
+    event_ids = []
+    purchase_ids = []
+
     for _ in tqdm(range(num_users), desc='Creating Users'):
         user = User(name=fake.name())
-        session.add(user)
-        session.commit()
-        user_ids.append(user.id)
+        user_ids.append(user)
+    session.add_all(user_ids)
+    session.commit()
 
-    event_ids = []
     for _ in tqdm(range(num_purchases), desc='Creating Events'):
         event = Event(name=fake.sentence(nb_words=4), type=random.choice(['concert', 'opera', 'theater']),
                       status='scheduled')
-        session.add(event)
-        session.commit()
-        event_ids.append(event.id)
+        event_ids.append(event)
+    session.add_all(event_ids)
+    session.commit()
 
-    purchase_ids = []
     for _ in tqdm(range(num_purchases), desc='Creating Purchases'):
-        purchase = Purchase(user_id=random.choice(user_ids), event_id=random.choice(event_ids), status='confirmed')
-        session.add(purchase)
-        session.commit()
-        purchase_ids.append(purchase.id)
+        purchase = Purchase(user_id=random.choice(user_ids).id, event_id=random.choice(event_ids).id,
+                            status='confirmed')
+        purchase_ids.append(purchase)
+    session.add_all(purchase_ids)
+    session.commit()
 
     for _ in tqdm(range(num_cancellations), desc='Creating Cancellations'):
-        purchase_id = random.choice(purchase_ids)
+        purchase_id = random.choice(purchase_ids).id
         purchase = session.query(Purchase).filter_by(id=purchase_id).first()
         purchase.status = 'cancelled'
-        session.commit()
+    session.commit()
 
+    payment_batch = []
     for _ in tqdm(range(num_payments), desc='Creating Payments'):
-        purchase_id = random.choice(purchase_ids)
+        purchase_id = random.choice(purchase_ids).id
         payment = Payment(purchase_id=purchase_id, amount=random.uniform(20, 200), status='successful')
-        session.add(payment)
-        session.commit()
+        payment_batch.append(payment)
+        if len(payment_batch) >= batch_size:
+            session.add_all(payment_batch)
+            session.commit()
+            payment_batch = []
+    session.add_all(payment_batch)
+    session.commit()
 
 
 def main(args):
-    engine = create_engine('cockroachdb://root@192.168.86.74:26257/tickets')
+    # Insecure connection
+    #  engine = create_engine('cockroachdb://{user}@192.168.86.74:26257/tickets')
+    # Secure connection
+    #  engine = create_engine(
+    #    'cockroachdb://{user}:{password}@{crdb-url}:26257/tickets?sslmode=verify-full&sslrootcert={home_certs}/certs/ca.crt&sslcert={home_certs}/certs/client.julian.crt&sslkey={home_certs}/certs/client.julian.key'
+    #)
+    engine = create_engine(
+        'cockroachdb://{user}:{password}@{crdb-url}:26257/tickets?sslmode=verify-full&sslrootcert={home_certs}/certs/ca.crt&sslcert={home_certs}/certs/client.julian.crt&sslkey={home_certs}/certs/client.julian.key'
+    )
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
@@ -90,6 +106,7 @@ def main(args):
 
 
 if __name__ == "__main__":
+    # python db-seed/seed.py --num_users 50 --num_purchases 100 --num_cancellations 20 --num_payments 400
     parser = argparse.ArgumentParser(description='Generate fake data for ticket purchasing service.')
     parser.add_argument('--num_users', type=int, default=1000, help='Number of users to generate')
     parser.add_argument('--num_purchases', type=int, default=5000, help='Number of purchases to generate')
