@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+  "log"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,7 @@ type Event struct {
 	Purchases []Purchase
 }
 
+// MIKE: why, when this struct contains UserID, does it also need a *User?
 type Purchase struct {
 	ID      uuid.UUID `json:"id"`
 	UserID  uuid.UUID `json:"userId"`
@@ -39,25 +41,21 @@ var db *pgxpool.Pool
 
 func main() {
 	var err error
-	db, err = pgxpool.Connect(context.Background(), "postgres://root@192.168.86.74:26257/tickets?application_name=pgx-crdb-app")
+  // Add "?application_name=pgx-crdb-app" to DB_URL
+  dbUrl := os.Getenv("DB_URL")
+  if len(dbUrl) == 0 {
+    log.Fatal("Environment variable 'DB_URL' must be set")
+  }
+	db, err = pgxpool.Connect(context.Background(), dbUrl)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connection to database: %v\n", err)
 		os.Exit(1)
 	}
 	defer db.Close()
-	// Connection Pool manage in Go
-	/*
-	- if random number generator is 5%
- 	- then drop existing connection manager
-  	- and create a new connection
- 	*/
-	r := gin.Default()
 
+  r := gin.Default()
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://192.168.86.202:3000"}
-	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
-	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type"}
-
+  config.AllowAllOrigins = true
 	r.Use(cors.New(config))
 
 	r.GET("/user/:userID/purchases", getUserPurchases)

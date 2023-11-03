@@ -1,0 +1,4 @@
+**/go.sum
+**/go.mod
+pgx-api/pgx-api
+gopg-api/gopg-api

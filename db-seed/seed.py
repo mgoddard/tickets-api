@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from sqlalchemy import create_engine, Column, String, ForeignKey, Numeric, DECIMAL
 from sqlalchemy.orm import declarative_base, sessionmaker
 import uuid
@@ -5,6 +7,7 @@ from faker import Faker
 import random
 from tqdm import tqdm
 import argparse
+import os, re
 
 fake = Faker()
 Base = declarative_base()
@@ -85,15 +88,12 @@ def create_fake_data(session, num_users, num_purchases, num_cancellations, num_p
 
 
 def main(args):
-    # Insecure connection
-    #  engine = create_engine('cockroachdb://{user}@192.168.86.74:26257/tickets')
-    # Secure connection
-    #  engine = create_engine(
-    #    'cockroachdb://{user}:{password}@{crdb-url}:26257/tickets?sslmode=verify-full&sslrootcert={home_certs}/certs/ca.crt&sslcert={home_certs}/certs/client.julian.crt&sslkey={home_certs}/certs/client.julian.key'
-    #)
-    engine = create_engine(
-        'cockroachdb://{user}:{password}@{crdb-url}:26257/tickets?sslmode=verify-full&sslrootcert={home_certs}/certs/ca.crt&sslcert={home_certs}/certs/client.julian.crt&sslkey={home_certs}/certs/client.julian.key'
-    )
+    db_url = os.getenv("DB_URL")
+    if db_url is None:
+      raise Exception("Environment variable 'DB_URL' must be set")
+    db_url = re.sub('^postgres(ql)?', 'cockroachdb', db_url)
+    print("DB_URL: {}".format(db_url))
+    engine = create_engine(db_url)
     Base.metadata.create_all(engine)
 
     Session = sessionmaker(bind=engine)
@@ -115,3 +115,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args)
+
